@@ -3,6 +3,7 @@
   'use strict';
 
   var STORE = 'irealMetronome.v1';
+  var SONGS = 'irealMetronome.songs.v1';
   var THEME = 'irealMetronome.theme';
 
   var $ = function (id) { return document.getElementById(id); };
@@ -58,6 +59,127 @@
       try { localStorage.setItem(STORE, JSON.stringify(chart)); } catch (e) {}
     }, 250);
   }
+
+  /* ---------- saved songs ----------
+     A small library in localStorage. Each entry is a whole chart, so tempo,
+     time signature, transpose and practice range come back with it. */
+
+  function readSongs() {
+    try {
+      var list = JSON.parse(localStorage.getItem(SONGS) || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+
+  function writeSongs(list) {
+    try { localStorage.setItem(SONGS, JSON.stringify(list)); return true; }
+    catch (e) { return false; }
+  }
+
+  function libMsg(kind, text) {
+    var el = $('libMsg');
+    el.className = 'import-msg' + (kind ? ' ' + kind : '');
+    el.textContent = text || '';
+  }
+
+  function indexOfName(list, name) {
+    for (var i = 0; i < list.length; i++) if (list[i].name === name) return i;
+    return -1;
+  }
+
+  function renderSongList() {
+    var list = readSongs();
+    var ul = $('songList');
+    if (!list.length) {
+      ul.innerHTML = '<li class="song-empty">Nothing saved yet.</li>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var bars = (list[i].chart && list[i].chart.bars) ? list[i].chart.bars.length : 0;
+      html += '<li class="song-row">' +
+              '<button class="song-open" data-n="' + i + '">' +
+                Chords.esc(list[i].name) + '</button>' +
+              '<span class="song-meta">' + bars + ' bars</span>' +
+              '<button class="song-del" data-n="' + i + '" ' +
+                'aria-label="Delete ' + Chords.esc(list[i].name) + '">&times;</button>' +
+              '</li>';
+    }
+    ul.innerHTML = html;
+  }
+
+  function saveSong() {
+    var name = ($('songName').value || chart.title || 'Untitled').trim();
+    if (!name) { libMsg('bad', 'give it a name'); return; }
+
+    var list = readSongs();
+    var at = indexOfName(list, name);
+    if (at >= 0 && !window.confirm('Replace the saved song "' + name + '"?')) return;
+
+    var entry = { name: name, savedAt: Date.now(), chart: JSON.parse(JSON.stringify(chart)) };
+    if (at >= 0) list[at] = entry; else list.push(entry);
+    list.sort(function (a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
+
+    if (!writeSongs(list)) {
+      libMsg('bad', 'could not save \u2014 storage full or blocked');
+      return;
+    }
+    renderSongList();
+    libMsg('ok', 'saved \u201c' + name + '\u201d');
+  }
+
+  function openSong(n) {
+    var entry = readSongs()[n];
+    if (!entry) return;
+    if (!confirmReplace()) return;
+
+    /* the song carries its own tempo and layout; muting is about your
+       speakers, not the song, so that stays as you have it */
+    var keepOn = chart.chordsOn, keepVol = chart.chordVol;
+    chart = Chart.sanitize(entry.chart);
+    chart.chordsOn = keepOn;
+    chart.chordVol = keepVol;
+
+    selected = 0;
+    syncAll();
+    $('songName').value = entry.name;
+    $('libraryBar').hidden = true;
+    statusEl.textContent = 'loaded \u201c' + entry.name + '\u201d';
+  }
+
+  function deleteSong(n) {
+    var list = readSongs();
+    if (!list[n]) return;
+    if (!window.confirm('Delete \u201c' + list[n].name + '\u201d? This cannot be undone.')) return;
+    list.splice(n, 1);
+    writeSongs(list);
+    renderSongList();
+    libMsg('', '');
+  }
+
+  $('songs').addEventListener('click', function () {
+    var bar = $('libraryBar');
+    bar.hidden = !bar.hidden;
+    if (!bar.hidden) {
+      libMsg('', '');
+      if (!$('songName').value) $('songName').value = chart.title || '';
+      renderSongList();
+      $('songName').focus();
+    }
+  });
+  $('libClose').addEventListener('click', function () { $('libraryBar').hidden = true; });
+  $('songSave').addEventListener('click', saveSong);
+  $('songName').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); saveSong(); }
+    else if (e.key === 'Escape') { $('libraryBar').hidden = true; }
+  });
+  $('songList').addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t.dataset || t.dataset.n === undefined) return;
+    var n = parseInt(t.dataset.n, 10);
+    if (t.classList.contains('song-open')) openSong(n);
+    else if (t.classList.contains('song-del')) deleteSong(n);
+  });
 
   /* ---------- rendering ---------- */
 
@@ -436,7 +558,7 @@
     if (on) document.body.classList.add('focus-mode');
     else document.body.classList.remove('focus-mode');
     $('focusExit').hidden = !on;
-    if (on) $('importBar').hidden = true;
+    if (on) { $('importBar').hidden = true; $('libraryBar').hidden = true; }
   }
 
   $('focus').addEventListener('click', function () { setFocus(true); });
@@ -518,7 +640,11 @@
   $('ireal').addEventListener('click', function () {
     var bar = $('importBar');
     bar.hidden = !bar.hidden;
-    if (!bar.hidden) { $('irealMsg').textContent = ''; $('irealUrl').focus(); }
+    if (!bar.hidden) {
+      $('libraryBar').hidden = true;
+      $('irealMsg').textContent = '';
+      $('irealUrl').focus();
+    }
   });
   $('irealLoad').addEventListener('click', loadIReal);
   $('irealCancel').addEventListener('click', function () {
@@ -561,7 +687,8 @@
     if (typing) return;
 
     if (e.key === 'Escape') {
-      if (!$('importBar').hidden) { $('importBar').hidden = true; return; }
+      if (!$('importBar').hidden)  { $('importBar').hidden = true; return; }
+      if (!$('libraryBar').hidden) { $('libraryBar').hidden = true; return; }
       if (inFocus()) { setFocus(false); return; }
     }
 

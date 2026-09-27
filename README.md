@@ -122,6 +122,22 @@ js/app.js       wiring, editing, persistence
 The chart and settings persist to `localStorage`; Export and Import move charts
 around as JSON.
 
+## Saved songs
+
+`Songs` opens a small library, also in `localStorage`. Type a name and `Save`
+to keep the current chart; click a name to load it, `×` to delete it. Saving
+under a name that already exists asks before replacing.
+
+An entry holds the whole chart, so tempo, time signature, transpose and any
+practice range come back with it. The one thing that does not is whether the
+piano is muted and how loud — that is about your speakers rather than the song,
+so it stays however you have it.
+
+Two things to know. `localStorage` is per origin, so charts saved on a hosted
+copy and charts saved from a local file are separate sets. And it is the
+browser's storage, not a file: clearing site data clears the library, so use
+`Export` for anything you would be sorry to lose.
+
 ## Importing from iReal Pro
 
 `iReal…` toggles a field for an `irealb://` link — from iReal Pro's own share
