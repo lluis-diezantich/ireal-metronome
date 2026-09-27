@@ -67,6 +67,12 @@ barlines and repeat count, double bar, and inserts or deletes measures.
 | +bpm / repeat      | speeds up each time through, iReal Pro style        |
 | Loop               | off means it stops at the end of the form           |
 | Chords             | mute or unmute the piano; Piano sets its level       |
+| Focus              | chart only, everything else hidden                  |
+
+`Focus` strips the page back to the chart alone and sets the chords larger, for
+reading off a music stand. Editing is off in there, so tapping anywhere on the
+chart starts and stops playback — the mode stays usable on a tablet with no
+keyboard. Leave it with `Esc` or the `×` in the corner.
 
 During the count-in the measure that is about to play is outlined with a dashed
 border and flashes neutral grey on each beat, its beat dots filling up as the

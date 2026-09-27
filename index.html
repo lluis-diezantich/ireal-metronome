@@ -68,6 +68,7 @@
 
   <div class="group right">
     <span class="status" id="status"></span>
+    <button id="focus" class="ghost" title="Chart only — hide the controls">Focus</button>
     <button id="theme" class="ghost" title="Toggle dark mode">Dark</button>
     <button id="ireal" class="ghost">iReal&hellip;</button>
     <button id="export" class="ghost">Export</button>
@@ -75,6 +76,9 @@
     <input id="importFile" type="file" accept="application/json" hidden>
   </div>
 </header>
+
+<button id="focusExit" class="focus-exit" hidden
+        aria-label="Leave focus mode" title="Leave focus mode (Esc)">&times;</button>
 
 <div id="importBar" class="import-bar" hidden>
   <input id="irealUrl" type="text" spellcheck="false" autocomplete="off"

@@ -206,6 +206,7 @@
   }
 
   chartEl.addEventListener('mousedown', function (e) {
+    if (inFocus()) { e.preventDefault(); togglePlay(); return; }
     var el = e.target.closest ? e.target.closest('.bar') : null;
     if (!el || (editing && editing.input === e.target)) return;
     var i = parseInt(el.dataset.i, 10);
@@ -353,6 +354,18 @@
 
   /* ---------- theme, import, export ---------- */
 
+  function inFocus() { return document.body.classList.contains('focus-mode'); }
+
+  function setFocus(on) {
+    if (on) document.body.classList.add('focus-mode');
+    else document.body.classList.remove('focus-mode');
+    $('focusExit').hidden = !on;
+    if (on) $('importBar').hidden = true;
+  }
+
+  $('focus').addEventListener('click', function () { setFocus(true); });
+  $('focusExit').addEventListener('click', function () { setFocus(false); });
+
   function setTheme(name) {
     document.body.dataset.theme = name;
     $('theme').textContent = name === 'dark' ? 'Paper' : 'Dark';
@@ -471,16 +484,16 @@
     if (e.code === 'Space' && !typing) { e.preventDefault(); togglePlay(); return; }
     if (typing) return;
 
-    if (e.key === 'Escape' && !$('importBar').hidden) {
-      $('importBar').hidden = true;
-      return;
+    if (e.key === 'Escape') {
+      if (!$('importBar').hidden) { $('importBar').hidden = true; return; }
+      if (inFocus()) { setFocus(false); return; }
     }
 
     if (e.key === 'ArrowRight')      { select(selected + 1); }
     else if (e.key === 'ArrowLeft')  { select(selected - 1); }
     else if (e.key === 'ArrowUp')    { e.preventDefault(); setTempo(chart.tempo + 1); }
     else if (e.key === 'ArrowDown')  { e.preventDefault(); setTempo(chart.tempo - 1); }
-    else if (e.key === 'Enter')      { e.preventDefault(); openInline(selected); }
+    else if (e.key === 'Enter')      { if (!inFocus()) { e.preventDefault(); openInline(selected); } }
     else if (e.key === 't' || e.key === 'T') { tapTempo(); }
   });
 
