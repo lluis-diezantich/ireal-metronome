@@ -373,6 +373,74 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   });
 
+  /* Importing replaces the one chart we hold, so ask before discarding work. */
+  function hasChordContent() {
+    for (var i = 0; i < chart.bars.length; i++) {
+      for (var k = 0; k < Chart.SLOTS; k++) if (chart.bars[i].chords[k]) return true;
+    }
+    return false;
+  }
+
+  function confirmReplace() {
+    return !hasChordContent() ||
+      window.confirm('Replace the current chart? Export it first if you want to keep it.');
+  }
+
+  function loadIReal() {
+    var msg = $('irealMsg');
+    var res = null;
+    try { res = IReal.parse($('irealUrl').value); } catch (e) { res = null; }
+
+    if (!res) {
+      msg.className = 'import-msg bad';
+      msg.textContent = 'not an irealb:// link';
+      return;
+    }
+    if (!confirmReplace()) return;
+
+    /* the link supplies the song; playback preferences stay the user's */
+    var song = res.songs[0];
+    var keep = ['countIn', 'ramp', 'loop', 'chordsOn', 'chordVol'];
+    var prefs = {};
+    for (var i = 0; i < keep.length; i++) prefs[keep[i]] = chart[keep[i]];
+
+    chart = IReal.toChart(song);
+    for (var k = 0; k < keep.length; k++) chart[keep[k]] = prefs[keep[k]];
+
+    selected = 0;
+    syncAll();
+
+    var notes = [];
+    if (res.songs.length > 1) notes.push('loaded song 1 of ' + res.songs.length);
+    if (song.unsupported.length) notes.push('not supported: ' + song.unsupported.join(', '));
+    $('irealUrl').value = '';
+
+    /* A clean import closes the bar; one with something to read stays open. */
+    if (notes.length) {
+      msg.className = 'import-msg';
+      msg.textContent = notes.join(' \u2014 ');
+    } else {
+      msg.textContent = '';
+      $('importBar').hidden = true;
+      statusEl.textContent = 'loaded ' + chart.bars.length + ' bars';
+    }
+  }
+
+  $('ireal').addEventListener('click', function () {
+    var bar = $('importBar');
+    bar.hidden = !bar.hidden;
+    if (!bar.hidden) { $('irealMsg').textContent = ''; $('irealUrl').focus(); }
+  });
+  $('irealLoad').addEventListener('click', loadIReal);
+  $('irealCancel').addEventListener('click', function () {
+    $('importBar').hidden = true;
+    $('irealUrl').value = '';
+  });
+  $('irealUrl').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); loadIReal(); }
+    else if (e.key === 'Escape') { $('importBar').hidden = true; }
+  });
+
   $('importBtn').addEventListener('click', function () { $('importFile').click(); });
 
   $('importFile').addEventListener('change', function () {
@@ -381,7 +449,9 @@
     var reader = new FileReader();
     reader.onload = function () {
       try {
-        chart = Chart.sanitize(JSON.parse(reader.result));
+        var next = Chart.sanitize(JSON.parse(reader.result));
+        if (!confirmReplace()) return;
+        chart = next;
         selected = 0;
         syncAll();
       } catch (e) {
@@ -400,6 +470,11 @@
 
     if (e.code === 'Space' && !typing) { e.preventDefault(); togglePlay(); return; }
     if (typing) return;
+
+    if (e.key === 'Escape' && !$('importBar').hidden) {
+      $('importBar').hidden = true;
+      return;
+    }
 
     if (e.key === 'ArrowRight')      { select(selected + 1); }
     else if (e.key === 'ArrowLeft')  { select(selected - 1); }

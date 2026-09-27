@@ -98,5 +98,31 @@ js/app.js       wiring, editing, persistence
 ```
 
 The chart and settings persist to `localStorage`; Export and Import move charts
-around as JSON. There is no `irealb://` import — that format would need its own
-parser.
+around as JSON.
+
+## Importing from iReal Pro
+
+`iReal…` toggles a field for an `irealb://` link — from iReal Pro's own share
+sheet, or from a forum post. One song at a time: paste a playlist link and it
+loads the first song and tells you how many it skipped.
+
+The field closes itself after a clean import. If there is something to tell you
+it stays open with the message; `Hide`, `Esc` or the `iReal…` button close it.
+
+The URL format is undocumented by the vendor. The de-obfuscation step and the
+token vocabulary follow the MIT-licensed
+[pianosnake/ireal-reader](https://github.com/pianosnake/ireal-reader), which
+credits ironss/accompaniser; `js/ireal.js` is an independent implementation
+that keeps repeats as barline markers rather than expanding them into bars, so
+an imported chart still reads like a chart.
+
+What comes across: title, composer, style, key, tempo, time signature, chords,
+section letters, repeat braces, double bars, `x` repeat-bar and `N.C.`.
+
+What does not: segno, coda, D.S., D.C. and numbered endings. Those are reported
+after the import rather than silently dropped, but the roadmap is lost — the
+bars are all there, the navigation is not.
+
+One quirk worth knowing: iReal writes a sustained chord as an empty measure.
+Those are preserved, so the chart looks right, but the piano falls silent for
+the bar instead of holding the chord.

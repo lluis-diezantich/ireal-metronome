@@ -28,6 +28,10 @@
 
 * { box-sizing: border-box; }
 
+/* An author `display` rule beats the UA style for [hidden], so state it
+   explicitly: otherwise setting .hidden = true has no visual effect. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   font-family: var(--ui-font);
