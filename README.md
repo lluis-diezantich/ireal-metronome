@@ -4,7 +4,8 @@ A metronome that looks like an iReal Pro chart. Instead of a blinking dot you
 get a real-looking lead sheet with a playhead stepping from measure to measure,
 beat dots inside the current bar, and the sounding chord picked out in blue.
 
-The chords sound too, on a synthesized piano: each one is held from its slot
+The chords can sound too, on a synthesized piano — tick `Chords` to unmute it,
+since it starts off. Each one is held from its slot
 until the next chord or the end of the bar, so a bar with one chord rings as a
 whole note. There is no rhythm section and no comping — just the click and the
 held chord.
@@ -66,7 +67,7 @@ barlines and repeat count, double bar, and inserts or deletes measures.
 | Enter              | edit the selected measure                           |
 | +bpm / repeat      | speeds up each time through, iReal Pro style        |
 | Loop               | off means it stops at the end of the form           |
-| Chords             | mute or unmute the piano; Piano sets its level       |
+| Chords             | unmute the piano (off by default); Piano sets level  |
 | Focus              | chart only, everything else hidden                  |
 
 `Focus` strips the page back to the chart alone and sets the chords larger, for

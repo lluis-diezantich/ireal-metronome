@@ -41,7 +41,7 @@
       countIn: 1,
       ramp: 0,
       loop: true,
-      chordsOn: true,
+      chordsOn: false,
       chordVol: 55,
       bars: bars
     };
@@ -180,7 +180,7 @@
       countIn:  Math.min(2, Math.max(0, parseInt(raw.countIn, 10) || 0)),
       ramp:     Math.min(30, Math.max(0, parseInt(raw.ramp, 10) || 0)),
       loop:     raw.loop !== false,
-      chordsOn: raw.chordsOn !== false,
+      chordsOn: raw.chordsOn === true,
       chordVol: Math.min(100, Math.max(0, parseInt(raw.chordVol, 10) || 55)),
       bars:     []
     };
