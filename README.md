@@ -4,8 +4,10 @@ A metronome that looks like an iReal Pro chart. Instead of a blinking dot you
 get a real-looking lead sheet with a playhead stepping from measure to measure,
 beat dots inside the current bar, and the sounding chord picked out in blue.
 
-Click only — there is no backing band. The chord symbols are there so you know
-where you are, not because anything plays them.
+The chords sound too, on a synthesized piano: each one is held from its slot
+until the next chord or the end of the bar, so a bar with one chord rings as a
+whole note. There is no rhythm section and no comping — just the click and the
+held chord.
 
 ## Running it
 
@@ -42,6 +44,9 @@ Both notations work, iReal Pro's shorthand and the plain spellings:
 | augmented         | `C+`      | `Caug`           | C+      |
 | minor-major 7     | `C-^7`    | `CmMaj7`         | C-△7    |
 
+`%` and `N.C.` render but stay silent — `%` would need to look back at the
+previous bar, which the voicing code does not do.
+
 Also handled: alterations stacked vertically (`C7b9#11`), slash chords (`F/A`),
 sixth-ninths (`Bb69`), suspensions (`G7sus4`), `Calt`, `N.C.`, and `%` for
 "same as the last bar". Case matters where the convention does — `M` is major,
@@ -61,6 +66,7 @@ barlines and repeat count, double bar, and inserts or deletes measures.
 | Enter              | edit the selected measure                           |
 | +bpm / repeat      | speeds up each time through, iReal Pro style        |
 | Loop               | off means it stops at the end of the form           |
+| Chords             | mute or unmute the piano; Piano sets its level       |
 
 During the count-in the measure that is about to play is outlined with a dashed
 border and flashes neutral grey on each beat, its beat dots filling up as the
@@ -85,6 +91,7 @@ index.html      markup for the transport, sheet, and measure editor
 css/chart.css   paper, chord typography, barlines, playhead
 css/ui.css      transport bar and measure editor
 js/chords.js    chord text -> lead-sheet markup
+js/piano.js     chord text -> synthesized piano notes
 js/chart.js     model, repeat expansion, rendering
 js/audio.js     Web Audio click scheduler
 js/app.js       wiring, editing, persistence

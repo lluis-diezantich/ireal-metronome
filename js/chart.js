@@ -41,6 +41,8 @@
       countIn: 1,
       ramp: 0,
       loop: true,
+      chordsOn: true,
+      chordVol: 55,
       bars: bars
     };
   }
@@ -77,6 +79,22 @@
     var out = [];
     for (i = 0; i <= last; i++) out.push(c[i] || '.');
     return out.join(' ');
+  }
+
+  /* Chord slots -> when each one starts and how many beats it holds.
+     One chord in the bar therefore lasts the whole bar. */
+  function chordEvents(b, bpb) {
+    var out = [];
+    for (var k = 0; k < SLOTS; k++) {
+      if (!b.chords[k]) continue;
+      var at = Math.round(k * bpb / SLOTS);
+      if (out.length && out[out.length - 1].beat === at) out[out.length - 1].text = b.chords[k];
+      else out.push({ beat: at, text: b.chords[k] });
+    }
+    for (var i = 0; i < out.length; i++) {
+      out[i].beats = (i + 1 < out.length ? out[i + 1].beat : bpb) - out[i].beat;
+    }
+    return out.filter(function (e) { return e.beats > 0; });
   }
 
   /* Which chord is sounding, given how far through the bar we are (0..1). */
@@ -162,6 +180,8 @@
       countIn:  Math.min(2, Math.max(0, parseInt(raw.countIn, 10) || 0)),
       ramp:     Math.min(30, Math.max(0, parseInt(raw.ramp, 10) || 0)),
       loop:     raw.loop !== false,
+      chordsOn: raw.chordsOn !== false,
+      chordVol: Math.min(100, Math.max(0, parseInt(raw.chordVol, 10) || 55)),
       bars:     []
     };
     var bars = Array.isArray(raw.bars) ? raw.bars : [];
@@ -189,6 +209,7 @@
     parseBarInput: parseBarInput,
     barToInput: barToInput,
     activeSlot: activeSlot,
+    chordEvents: chordEvents,
     playOrder: playOrder,
     render: render,
     sanitize: sanitize

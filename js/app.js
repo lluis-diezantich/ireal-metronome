@@ -25,6 +25,7 @@
   var metro = new Metronome();
   metro.getBpm = function () { return chart.tempo; };
   metro.getBeatsPerBar = function () { return Chart.beatsPerBar(chart); };
+  metro.getBarChords = function (i) { return chart.bars[i]; };
 
   metro.onPassEnd = function () {
     if (chart.ramp > 0) setTempo(chart.tempo + chart.ramp);
@@ -229,6 +230,8 @@
     if (metro.running) { metro.stop(); return; }
     baseTempo = chart.tempo;
     metro.setVolume($('vol').value / 100);
+    metro.setChordVolume(chart.chordVol / 100);
+    metro.chordsOn = chart.chordsOn;
     if (!metro.start(Chart.playOrder(chart), chart.countIn)) {
       statusEl.textContent = 'no audio';
       return;
@@ -274,6 +277,16 @@
   });
   $('vol').addEventListener('input', function () {
     metro.setVolume(this.value / 100);
+  });
+  $('chords').addEventListener('change', function () {
+    chart.chordsOn = this.checked;
+    metro.chordsOn = this.checked;
+    save();
+  });
+  $('chordVol').addEventListener('input', function () {
+    chart.chordVol = parseInt(this.value, 10) || 0;
+    metro.setChordVolume(chart.chordVol / 100);
+    save();
   });
 
   /* ---------- head fields ---------- */
@@ -407,6 +420,8 @@
     $('countIn').value   = String(chart.countIn);
     $('ramp').value      = String(chart.ramp);
     $('loop').checked    = chart.loop;
+    $('chords').checked  = chart.chordsOn;
+    $('chordVol').value  = String(chart.chordVol);
     setTempo(chart.tempo);
     refresh();
     select(selected);

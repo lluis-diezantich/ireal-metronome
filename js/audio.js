@@ -17,6 +17,10 @@
     this.queue = [];        /* {step, time} pending visual events */
     this.timer = null;
 
+    this.chordsOn = true;
+    this.chordGain = null;
+    this.voiceBus = null;   /* per-run bus, so stop() can cut held notes */
+
     this.playOrder = [0];
     this.pos = 0;           /* index into playOrder */
     this.beat = 0;          /* beat within the current bar */
@@ -29,6 +33,7 @@
     /* host supplies these */
     this.getBpm = function () { return 120; };
     this.getBeatsPerBar = function () { return 4; };
+    this.getBarChords = null;   /* barIndex -> bar object */
     this.onPassEnd = null;  /* -> truthy to keep looping */
     this.onStop = null;
   }
@@ -41,6 +46,10 @@
       this.master = this.ctx.createGain();
       this.master.gain.value = 0.8;
       this.master.connect(this.ctx.destination);
+
+      this.chordGain = this.ctx.createGain();
+      this.chordGain.gain.value = 0.55;
+      this.chordGain.connect(this.ctx.destination);
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
     return true;
@@ -49,6 +58,25 @@
   Metronome.prototype.setVolume = function (v) {
     if (this.master) this.master.gain.value = Math.max(0, Math.min(1, v));
     this._vol = v;
+  };
+
+  Metronome.prototype.setChordVolume = function (v) {
+    if (this.chordGain) this.chordGain.gain.value = Math.max(0, Math.min(1, v));
+    this._cvol = v;
+  };
+
+  /* Lay out one bar's chords at the moment its downbeat is scheduled. */
+  Metronome.prototype._scheduleBar = function (barIndex, t) {
+    if (!this.chordsOn || !this.getBarChords || !global.Piano || !this.voiceBus) return;
+    var bar = this.getBarChords(barIndex);
+    if (!bar) return;
+
+    var spb = 60 / Math.max(20, Math.min(400, this.getBpm()));
+    var events = global.Chart.chordEvents(bar, this.getBeatsPerBar());
+    for (var i = 0; i < events.length; i++) {
+      global.Piano.play(this.ctx, this.voiceBus, events[i].text,
+                        t + events[i].beat * spb, events[i].beats * spb, 0.5);
+    }
   };
 
   Metronome.prototype._click = function (t, accent) {
@@ -120,6 +148,7 @@
     while (this.nextTime < horizon && guard++ < 64) {
       var step = this._step();
       this._click(this.nextTime, step.beat === 0);
+      if (!step.countIn && step.beat === 0) this._scheduleBar(step.barIndex, this.nextTime);
       this.queue.push({ step: step, time: this.nextTime });
 
       var bpm = Math.max(20, Math.min(400, this.getBpm()));
@@ -137,6 +166,10 @@
     if (this.running) return true;
     if (!this._ensureCtx()) return false;
     if (typeof this._vol === 'number') this.setVolume(this._vol);
+    if (typeof this._cvol === 'number') this.setChordVolume(this._cvol);
+
+    this.voiceBus = this.ctx.createGain();
+    this.voiceBus.connect(this.chordGain);
 
     this.playOrder = (playOrder && playOrder.length) ? playOrder : [0];
     this.pos = 0;
@@ -156,6 +189,18 @@
 
   Metronome.prototype.stop = function () {
     if (this.timer) { clearInterval(this.timer); this.timer = null; }
+
+    /* fade whatever is still ringing, then drop the bus */
+    if (this.voiceBus && this.ctx) {
+      var bus = this.voiceBus, now = this.ctx.currentTime;
+      try {
+        bus.gain.cancelScheduledValues(now);
+        bus.gain.setValueAtTime(bus.gain.value, now);
+        bus.gain.linearRampToValueAtTime(0, now + 0.09);
+      } catch (e) { /* ignore */ }
+      setTimeout(function () { try { bus.disconnect(); } catch (e) {} }, 400);
+      this.voiceBus = null;
+    }
     this.running = false;
     this.finishing = false;
     this.queue.length = 0;
