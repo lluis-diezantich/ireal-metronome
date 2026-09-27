@@ -1,0 +1,226 @@
+/* The chart face: paper, chord typography, barlines, playhead. */
+
+:root {
+  --paper:      #faf6ec;
+  --paper-edge: #f1ead8;
+  --ink:        #17140f;
+  --rule:       #2b2620;
+  --accent:     #3f7fd0;
+  --highlight:  rgba(63, 127, 208, .15);
+  --muted:      #8d857a;
+  --ui-bg:      #efeade;
+  --ui-line:    #d9d2c0;
+  --chord-font: Palatino, "Palatino Linotype", "Iowan Old Style", "Hoefler Text", Georgia, serif;
+  --ui-font:    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+[data-theme="dark"] {
+  --paper:      #15171b;
+  --paper-edge: #101216;
+  --ink:        #eaeef4;
+  --rule:       #8b949f;
+  --accent:     #63a4f7;
+  --highlight:  rgba(99, 164, 247, .20);
+  --muted:      #78828f;
+  --ui-bg:      #1c1f25;
+  --ui-line:    #2c313a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--ui-font);
+  color: var(--ink);
+  background: var(--paper-edge);
+  -webkit-text-size-adjust: 100%;
+}
+
+.sheet {
+  max-width: 940px;
+  margin: 18px auto 28px;
+  padding: 26px 30px 18px;
+  background: var(--paper);
+  border: 1px solid var(--ui-line);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .10), 0 8px 24px rgba(0, 0, 0, .06);
+}
+
+/* ---- head ---- */
+
+.sheet-head { margin-bottom: 26px; }
+.head-row { display: flex; align-items: baseline; gap: 12px; }
+
+.sheet-head input {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  color: inherit;
+  font-family: var(--chord-font);
+  padding: 2px 3px;
+  min-width: 0;
+}
+.sheet-head input:hover  { border-bottom-color: var(--ui-line); }
+.sheet-head input:focus  { outline: 0; border-bottom-color: var(--accent); }
+
+.f-title    { flex: 1; font-size: 27px; font-weight: 700; text-align: center; letter-spacing: .01em; }
+.f-composer { width: 190px; font-size: 14px; font-style: italic; text-align: right; color: var(--muted); }
+.sub        { margin-top: 2px; }
+.f-style    { flex: 1; font-size: 13px; text-align: center; color: var(--muted); font-style: italic; }
+.f-key      { width: 190px; font-size: 13px; text-align: right; color: var(--muted); }
+
+/* ---- the grid of measures ---- */
+
+.chart {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  row-gap: 36px;
+  padding-top: 20px;
+}
+
+.bar {
+  position: relative;
+  min-height: 74px;
+  padding: 4px 6px 18px;
+  border-left: 1.5px solid var(--rule);
+  cursor: pointer;
+}
+.bar:nth-child(4n), .bar:last-child { border-right: 1.5px solid var(--rule); }
+
+/* Highlight and selection ride on their own layer, so the barlines
+   themselves stay perfectly straight. */
+.hl {
+  position: absolute;
+  top: 1px; right: 1px; bottom: 1px; left: 2px;
+  border-radius: 7px;
+  pointer-events: none;
+  transition: background-color 90ms linear;
+  z-index: 0;
+}
+.bar:hover .hl       { background: rgba(127, 127, 127, .07); }
+.bar.now .hl         { background: var(--highlight); }
+.bar.selected .hl    { box-shadow: inset 0 0 0 1.5px var(--accent); }
+
+.slots, .beats, .section, .timesig { position: relative; z-index: 1; }
+.beats, .section, .timesig { position: absolute; }
+
+/* barline decorations */
+.bar.rep-open  { border-left: 5px double var(--rule); }
+.bar.rep-close { border-right: 5px double var(--rule); }
+.bar.double    { border-right: 4px double var(--rule); }
+
+.bar.rep-open::before, .bar.rep-close::after {
+  content: "";
+  position: absolute;
+  top: 25px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--rule);
+  box-shadow: 0 14px 0 var(--rule);
+  z-index: 1;
+}
+.bar.rep-open::before { left: 5px; }
+.bar.rep-close::after { right: 5px; }
+
+/* section letter */
+.section {
+  position: absolute;
+  top: -19px; left: -1px;
+  font: 700 11px/1 var(--ui-font);
+  letter-spacing: .06em;
+  padding: 3px 5px;
+  border: 1.5px solid var(--rule);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+/* time signature, first measure only */
+.timesig {
+  position: absolute;
+  left: 7px; top: 8px;
+  font-family: var(--chord-font);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: .95;
+  text-align: center;
+}
+
+/* chord slots */
+.slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: flex-start;
+  padding-left: 10px;
+  min-height: 44px;
+}
+.bar.first .slots { padding-left: 34px; }
+.bar.rep-open .timesig { left: 18px; }
+.bar.first.rep-open .slots { padding-left: 45px; }
+.slot { min-width: 0; }
+
+.chord {
+  font-family: var(--chord-font);
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1.15;
+  white-space: nowrap;
+  display: inline-block;
+  transition: color 90ms linear;
+}
+.chord .acc   { font-size: .78em; margin: 0 -.04em 0 -.05em; }
+/* the sharp glyph is squarer and sits low next to a capital; lift it */
+.chord .sharp { vertical-align: .28em; }
+.chord .q     { font-size: .56em; vertical-align: .62em; letter-spacing: .01em; }
+.chord .alts  { display: inline-flex; flex-direction: column; font-size: .40em;
+                line-height: 1.06; vertical-align: 1.0em; margin-left: .06em; }
+.chord .bass  { font-size: .80em; }
+.chord.nc     { font-size: .72em; letter-spacing: .04em; }
+.chord.pct    { font-size: 1.5em; transform: skewX(-14deg); display: inline-block; color: var(--muted); }
+
+.bar.now .chord.active { color: var(--accent); }
+
+/* beat dots */
+.beats {
+  position: absolute;
+  bottom: 5px; left: 11px;
+  display: flex; gap: 5px;
+  visibility: hidden;
+}
+.bar.now .beats { visibility: visible; }
+.beat { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); opacity: .3; }
+.beat.on { opacity: 1; background: var(--accent); transform: scale(1.25); }
+
+/* inline editor */
+.bar-input {
+  width: 100%;
+  font-family: var(--chord-font);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  padding: 2px 4px;
+  outline: 0;
+}
+
+.sheet-foot {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 30px; padding-top: 12px;
+  border-top: 1px solid var(--ui-line);
+}
+.hint { font-size: 12px; color: var(--muted); }
+.hint code {
+  font-size: 11px; padding: 1px 4px; border-radius: 3px;
+  background: rgba(127, 127, 127, .14);
+}
+
+@media (max-width: 620px) {
+  .sheet  { margin: 10px; padding: 18px 16px 14px; }
+  .chart  { grid-template-columns: repeat(2, 1fr); row-gap: 32px; }
+  .bar:nth-child(4n) { border-right: 0; }
+  .bar:nth-child(2n), .bar:last-child { border-right: 1.5px solid var(--rule); }
+  .chord  { font-size: 22px; }
+  .f-composer, .f-key { width: 120px; }
+  .hint   { display: none; }
+}
