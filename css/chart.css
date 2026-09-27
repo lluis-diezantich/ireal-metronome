@@ -126,6 +126,9 @@ body {
 .bar.rep-open::before { left: 5px; }
 .bar.rep-close::after { right: 5px; }
 
+/* bars picked out as a practice range */
+.bar.in-loop { box-shadow: inset 0 -2px 0 rgba(63, 127, 208, .45); }
+
 /* section letter */
 .section {
   position: absolute;
@@ -136,7 +139,9 @@ body {
   border: 1.5px solid var(--rule);
   color: var(--ink);
   background: var(--paper);
+  cursor: pointer;
 }
+.section:hover { border-color: var(--accent); color: var(--accent); }
 
 /* time signature, first measure only */
 .timesig {

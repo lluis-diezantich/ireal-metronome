@@ -67,9 +67,17 @@ barlines and repeat count, double bar, and inserts or deletes measures.
 | Enter              | edit the selected measure                           |
 | +bpm / repeat      | speeds up each time through, iReal Pro style        |
 | Loop               | off means it stops at the end of the form           |
+| bars n–m chip       | a practice range is set; × goes back to the whole form |
 | Chords             | unmute the piano (off by default); Piano sets level  |
 | Focus              | chart only, everything else hidden                  |
 | Transpose          | shift the chart ±6 semitones, display and piano      |
+
+To drill one passage, **click a section letter** to take that whole section, or
+**shift-click** a measure to run a range from the selected one to it.
+`Shift`+`←`/`→` adjusts the end. Those bars get an underline and a chip appears
+in the transport; its `×` restores the whole form. A range plays straight
+through, ignoring any repeats written inside it, because when you are drilling
+four bars you want those four bars.
 
 Transposing is non-destructive: chords are stored at concert pitch and the
 offset is applied when drawing and when playing, so setting it back to 0 always

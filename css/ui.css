@@ -215,3 +215,26 @@ body.focus-mode .sheet-head input   { pointer-events: none; }
   body.focus-mode .sheet { padding: 16px 14px; }
   body.focus-mode .chord { font-size: 26px; }
 }
+
+/* practice-range chip */
+.loop-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 3px 3px 9px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.loop-chip button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+}
+.loop-chip button:hover { opacity: .6; }

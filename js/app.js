@@ -81,6 +81,31 @@
 
   function keyDisplay() { return Chords.transpose(chart.key, chart.transpose); }
 
+  /* --- practice range --- */
+
+  function syncLoopChip() {
+    var r = Chart.loopRange(chart);
+    $('loopChip').hidden = !r;
+    if (r) {
+      $('loopChipText').textContent = r.from === r.to
+        ? 'bar ' + (r.from + 1)
+        : 'bars ' + (r.from + 1) + '\u2013' + (r.to + 1);
+    }
+  }
+
+  function setLoopRange(from, to) {
+    chart.loopFrom = from;
+    chart.loopTo = to;
+
+    /* take effect straight away rather than at the end of the pass */
+    if (metro.running) {
+      metro.playOrder = Chart.playOrder(chart);
+      if (metro.pos >= metro.playOrder.length) metro.pos = 0;
+    }
+    refresh();
+    syncLoopChip();
+  }
+
   function refresh() {
     Chart.render(chart, chartEl, selected);
     if (lastStep) paintNow(lastStep, true);
@@ -229,11 +254,31 @@
     var el = e.target.closest ? e.target.closest('.bar') : null;
     if (!el || (editing && editing.input === e.target)) return;
     var i = parseInt(el.dataset.i, 10);
+
+    /* a section letter grabs that whole section as the practice range */
+    if (e.target.classList && e.target.classList.contains('section')) {
+      e.preventDefault();
+      commitInline(0);           /* setLoopRange re-renders; save any open edit */
+      var sec = Chart.sectionRange(chart, i);
+      setLoopRange(sec.from, sec.to);
+      return;
+    }
+
+    /* shift-click extends a range from the selected bar */
+    if (e.shiftKey) {
+      e.preventDefault();
+      commitInline(0);
+      setLoopRange(Math.min(selected, i), Math.max(selected, i));
+      return;
+    }
+
     if (editing && editing.i === i) return;
     e.preventDefault();          /* keep focus handling predictable */
     select(i);
     openInline(i);
   });
+
+  $('loopClear').addEventListener('click', function () { setLoopRange(null, null); });
 
   /* ---------- transport ---------- */
 
@@ -366,6 +411,7 @@
   $('beDelete').addEventListener('click', function () {
     if (chart.bars.length <= 1) return;
     chart.bars.splice(selected, 1);
+    if (Chart.loopRange(chart)) { chart.loopFrom = null; chart.loopTo = null; syncLoopChip(); }
     if (selected >= chart.bars.length) selected = chart.bars.length - 1;
     refresh();
     select(selected);
@@ -519,7 +565,16 @@
       if (inFocus()) { setFocus(false); return; }
     }
 
-    if (e.key === 'ArrowRight')      { select(selected + 1); }
+    if (e.key === 'ArrowRight' && e.shiftKey) {
+      var rr = Chart.loopRange(chart);
+      setLoopRange(rr ? rr.from : selected,
+                   Math.min(chart.bars.length - 1, (rr ? rr.to : selected) + 1));
+    }
+    else if (e.key === 'ArrowLeft' && e.shiftKey) {
+      var rl = Chart.loopRange(chart);
+      if (rl) setLoopRange(rl.from, Math.max(rl.from, rl.to - 1));
+    }
+    else if (e.key === 'ArrowRight')      { select(selected + 1); }
     else if (e.key === 'ArrowLeft')  { select(selected - 1); }
     else if (e.key === 'ArrowUp')    { e.preventDefault(); setTempo(chart.tempo + 1); }
     else if (e.key === 'ArrowDown')  { e.preventDefault(); setTempo(chart.tempo - 1); }
@@ -536,6 +591,7 @@
     $('fKey').value      = keyDisplay();
     $('timeSig').value   = chart.timeSig;
     $('transpose').value = String(chart.transpose);
+    syncLoopChip();
     $('countIn').value   = String(chart.countIn);
     $('ramp').value      = String(chart.ramp);
     $('loop').checked    = chart.loop;

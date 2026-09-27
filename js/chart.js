@@ -44,6 +44,8 @@
       chordsOn: false,
       chordVol: 55,
       transpose: 0,
+      loopFrom: null,
+      loopTo: null,
       bars: bars
     };
   }
@@ -107,12 +109,41 @@
     return best;
   }
 
+  /* The bar range to practise, clamped to the chart, or null for all of it. */
+  function loopRange(chart) {
+    if (chart.loopFrom == null || chart.loopTo == null) return null;
+    var n = chart.bars.length;
+    if (!n) return null;
+    var from = Math.max(0, Math.min(n - 1, chart.loopFrom));
+    var to   = Math.max(0, Math.min(n - 1, chart.loopTo));
+    if (from > to) { var swap = from; from = to; to = swap; }
+    return { from: from, to: to };
+  }
+
+  /* The bars belonging to the section starting at barIndex: up to the bar
+     before the next section letter, or the end of the chart. */
+  function sectionRange(chart, barIndex) {
+    var to = chart.bars.length - 1;
+    for (var i = barIndex + 1; i < chart.bars.length; i++) {
+      if (chart.bars[i].section) { to = i - 1; break; }
+    }
+    return { from: barIndex, to: to };
+  }
+
   /* Expand repeat signs into a flat list of bar indices to play.
    * One level deep; a close with no matching open repeats from the top. */
   function playOrder(chart) {
     var order = [], passes = {}, openAt = 0, i = 0, guard = 0;
     var bars = chart.bars;
     if (!bars.length) return [0];
+
+    /* A practice range plays straight through: when you are drilling four
+       bars you want those four bars, not the repeats written inside them. */
+    var range = loopRange(chart);
+    if (range) {
+      for (var r = range.from; r <= range.to; r++) order.push(r);
+      return order;
+    }
 
     while (i < bars.length && guard++ < 4096) {
       var b = bars[i];
@@ -131,6 +162,7 @@
 
   function render(chart, host, selected) {
     var semis = chart.transpose || 0;
+    var range = loopRange(chart);
     var bpb = beatsPerBar(chart);
     var sig = String(chart.timeSig).split('/');
     var html = '';
@@ -143,6 +175,7 @@
       if (b.repClose) cls.push('rep-close');
       if (b.double)   cls.push('double');
       if (i === selected) cls.push('selected');
+      if (range && i >= range.from && i <= range.to) cls.push('in-loop');
 
       html += '<div class="' + cls.join(' ') + '" data-i="' + i + '" role="gridcell" tabindex="-1">';
       html += '<i class="hl"></i>';
@@ -186,6 +219,8 @@
       chordsOn: raw.chordsOn === true,
       chordVol: Math.min(100, Math.max(0, parseInt(raw.chordVol, 10) || 55)),
       transpose: Math.min(6, Math.max(-6, parseInt(raw.transpose, 10) || 0)),
+      loopFrom: raw.loopFrom == null ? null : parseInt(raw.loopFrom, 10),
+      loopTo:   raw.loopTo   == null ? null : parseInt(raw.loopTo, 10),
       bars:     []
     };
     var bars = Array.isArray(raw.bars) ? raw.bars : [];
@@ -214,6 +249,8 @@
     barToInput: barToInput,
     activeSlot: activeSlot,
     chordEvents: chordEvents,
+    loopRange: loopRange,
+    sectionRange: sectionRange,
     playOrder: playOrder,
     render: render,
     sanitize: sanitize
