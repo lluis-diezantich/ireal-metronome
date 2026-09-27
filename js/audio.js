@@ -74,7 +74,8 @@
     if (this.countIn > 0) {
       var bpb = this.getBeatsPerBar();
       var done = this.countInTotal - this.countIn;
-      return { countIn: true, barIndex: -1, beat: done % bpb, pos: -1,
+      return { countIn: true, barIndex: -1, upcoming: this.playOrder[0],
+               beat: done % bpb, pos: -1,
                remaining: Math.ceil(this.countIn / bpb) };
     }
     return {

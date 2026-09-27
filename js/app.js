@@ -68,12 +68,25 @@
   }
 
   function clearNow() {
-    var el = chartEl.querySelector('.bar.now');
-    if (el) el.classList.remove('now');
-    var on = chartEl.querySelector('.beat.on');
-    if (on) on.classList.remove('on');
-    var act = chartEl.querySelector('.chord.active');
-    if (act) act.classList.remove('active');
+    var drop = function (sel, cls) {
+      var list = chartEl.querySelectorAll(sel);
+      for (var i = 0; i < list.length; i++) list[i].classList.remove(cls);
+    };
+    drop('.bar.now', 'now');
+    drop('.bar.counting', 'counting');
+    drop('.hl.pulse', 'pulse');
+    drop('.beat.on', 'on');
+    drop('.chord.active', 'active');
+  }
+
+  /* Restart the pulse animation; the reflow between remove and add is
+     what makes it replay rather than sit at its end state. */
+  function pulse(barEl) {
+    var hl = barEl.querySelector('.hl');
+    if (!hl) return;
+    hl.classList.remove('pulse');
+    void hl.offsetWidth;
+    hl.classList.add('pulse');
   }
 
   function paintNow(step, force) {
@@ -83,6 +96,17 @@
 
     if (step.countIn) {
       statusEl.textContent = 'count-in ' + step.remaining;
+
+      /* Pulse the measure the count-in is leading into, filling its beat
+         dots, so the playhead arrives rather than appearing from nowhere. */
+      var lead = barAt(step.upcoming);
+      if (!lead) return;
+      lead.classList.add('counting');
+      var dots = lead.querySelectorAll('.beat');
+      for (var i = 0; i <= step.beat && i < dots.length; i++) {
+        dots[i].classList.add('on');
+      }
+      pulse(lead);
       return;
     }
 

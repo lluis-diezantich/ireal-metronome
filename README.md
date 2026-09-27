@@ -62,6 +62,11 @@ barlines and repeat count, double bar, and inserts or deletes measures.
 | +bpm / repeat      | speeds up each time through, iReal Pro style        |
 | Loop               | off means it stops at the end of the form           |
 
+During the count-in the measure that is about to play is outlined with a dashed
+border and flashes neutral grey on each beat, its beat dots filling up as the
+count runs. It is deliberately not blue: the blue highlight means the playhead
+is on that bar and a chord is sounding, so the two never look alike.
+
 Repeat signs expand into the play order, so `{ … }` with a count of 2 plays the
 section twice before moving on. One level deep — nested repeats are not
 supported, and a close with no matching open repeats from the top.

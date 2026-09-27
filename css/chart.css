@@ -6,7 +6,7 @@
   --ink:        #17140f;
   --rule:       #2b2620;
   --accent:     #3f7fd0;
-  --highlight:  rgba(63, 127, 208, .15);
+  --highlight:  rgba(63, 127, 208, .20);
   --muted:      #8d857a;
   --ui-bg:      #efeade;
   --ui-line:    #d9d2c0;
@@ -20,7 +20,7 @@
   --ink:        #eaeef4;
   --rule:       #8b949f;
   --accent:     #63a4f7;
-  --highlight:  rgba(99, 164, 247, .20);
+  --highlight:  rgba(99, 164, 247, .26);
   --muted:      #78828f;
   --ui-bg:      #1c1f25;
   --ui-line:    #2c313a;
@@ -178,6 +178,26 @@ body {
 .chord.pct    { font-size: 1.5em; transform: skewX(-14deg); display: inline-block; color: var(--muted); }
 
 .bar.now .chord.active { color: var(--accent); }
+
+/* Count-in: the measure about to play is outlined as pending and flashes
+   neutral grey on each beat, with its dots filling up. Deliberately not
+   blue, so it never reads as the playhead. */
+.bar.counting .hl {
+  background: rgba(127, 127, 127, .05);
+  outline: 1.5px dashed var(--muted);
+  outline-offset: -3px;
+}
+.bar.counting .hl.pulse { animation: countPulse 280ms ease-out; }
+@keyframes countPulse {
+  from { background: rgba(127, 127, 127, .26); }
+  to   { background: rgba(127, 127, 127, .05); }
+}
+.bar.counting .beats { visibility: visible; }
+.bar.counting .beat.on {
+  background: var(--ink);
+  opacity: .5;
+  transform: none;
+}
 
 /* beat dots */
 .beats {
