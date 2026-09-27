@@ -34,6 +34,7 @@
     this.getBpm = function () { return 120; };
     this.getBeatsPerBar = function () { return 4; };
     this.getBarChords = null;   /* barIndex -> bar object */
+    this.getTranspose = function () { return 0; };
     this.onPassEnd = null;  /* -> truthy to keep looping */
     this.onStop = null;
   }
@@ -75,7 +76,8 @@
     var events = global.Chart.chordEvents(bar, this.getBeatsPerBar());
     for (var i = 0; i < events.length; i++) {
       global.Piano.play(this.ctx, this.voiceBus, events[i].text,
-                        t + events[i].beat * spb, events[i].beats * spb, 0.5);
+                        t + events[i].beat * spb, events[i].beats * spb, 0.5,
+                        this.getTranspose());
     }
   };
 

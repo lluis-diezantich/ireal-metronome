@@ -137,12 +137,16 @@
     }
   }
 
-  function play(ctx, dest, text, t, dur, vel) {
+  function play(ctx, dest, text, t, dur, vel, semis) {
     var v = voice(text);
     if (!v) return;
+    var shift = semis || 0;
     var midis = [v.bass];
     for (var i = 0; i < v.notes.length; i++) {
       if (midis.indexOf(v.notes[i]) < 0) midis.push(v.notes[i]);
+    }
+    if (shift) {
+      for (var j = 0; j < midis.length; j++) midis[j] += shift;
     }
     /* a few ms between notes reads as a hand, not a machine */
     for (var k = 0; k < midis.length; k++) {

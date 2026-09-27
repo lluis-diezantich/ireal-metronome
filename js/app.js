@@ -26,6 +26,7 @@
   metro.getBpm = function () { return chart.tempo; };
   metro.getBeatsPerBar = function () { return Chart.beatsPerBar(chart); };
   metro.getBarChords = function (i) { return chart.bars[i]; };
+  metro.getTranspose = function () { return chart.transpose; };
 
   metro.onPassEnd = function () {
     if (chart.ramp > 0) setTempo(chart.tempo + chart.ramp);
@@ -61,6 +62,24 @@
   /* ---------- rendering ---------- */
 
   function barAt(i) { return chartEl.querySelector('.bar[data-i="' + i + '"]'); }
+
+  /* Chords are stored at concert pitch; the transpose offset is applied for
+     display and for the piano. Editing happens in the key you can see, so
+     what comes out of a field is shifted back before it is stored. */
+  function barInputDisplay(b) {
+    if (!chart.transpose) return Chart.barToInput(b);
+    return Chart.barToInput({
+      chords: b.chords.map(function (c) { return Chords.transpose(c, chart.transpose); })
+    });
+  }
+
+  function barChordsFromInput(str) {
+    var slots = Chart.parseBarInput(str);
+    if (!chart.transpose) return slots;
+    return slots.map(function (c) { return Chords.transpose(c, -chart.transpose); });
+  }
+
+  function keyDisplay() { return Chords.transpose(chart.key, chart.transpose); }
 
   function refresh() {
     Chart.render(chart, chartEl, selected);
@@ -151,7 +170,7 @@
     var b = chart.bars[selected];
     if (!b) return;
     $('beNum').textContent  = String(selected + 1);
-    $('beChords').value     = Chart.barToInput(b);
+    $('beChords').value     = barInputDisplay(b);
     $('beSection').value    = b.section;
     $('beRepOpen').checked  = b.repOpen;
     $('beRepClose').checked = b.repClose;
@@ -166,7 +185,7 @@
     var slots = el.querySelector('.slots');
     var input = document.createElement('input');
     input.className = 'bar-input';
-    input.value = Chart.barToInput(chart.bars[i]);
+    input.value = barInputDisplay(chart.bars[i]);
     input.setAttribute('aria-label', 'Chords for measure ' + (i + 1));
     slots.innerHTML = '';
     slots.appendChild(input);
@@ -189,7 +208,7 @@
     var i = editing.i, value = editing.input.value;
     editing = null;
 
-    chart.bars[i].chords = Chart.parseBarInput(value);
+    chart.bars[i].chords = barChordsFromInput(value);
     refresh();
     syncBarEditor();
 
@@ -263,6 +282,12 @@
     chart.timeSig = this.value;
     refresh();
   });
+  $('transpose').addEventListener('change', function () {
+    chart.transpose = parseInt(this.value, 10) || 0;
+    $('fKey').value = keyDisplay();
+    refresh();
+    syncBarEditor();
+  });
   $('countIn').addEventListener('change', function () {
     chart.countIn = parseInt(this.value, 10) || 0;
     save();
@@ -292,7 +317,12 @@
 
   /* ---------- head fields ---------- */
 
-  [['fTitle', 'title'], ['fComposer', 'composer'], ['fStyle', 'style'], ['fKey', 'key']]
+  $('fKey').addEventListener('input', function () {
+    chart.key = chart.transpose ? Chords.transpose(this.value, -chart.transpose) : this.value;
+    save();
+  });
+
+  [['fTitle', 'title'], ['fComposer', 'composer'], ['fStyle', 'style']]
     .forEach(function (pair) {
       $(pair[0]).addEventListener('input', function () {
         chart[pair[1]] = this.value;
@@ -303,7 +333,7 @@
   /* ---------- measure editor controls ---------- */
 
   $('beChords').addEventListener('change', function () {
-    chart.bars[selected].chords = Chart.parseBarInput(this.value);
+    chart.bars[selected].chords = barChordsFromInput(this.value);
     refresh();
   });
   $('beSection').addEventListener('input', function () {
@@ -503,8 +533,9 @@
     $('fTitle').value    = chart.title;
     $('fComposer').value = chart.composer;
     $('fStyle').value    = chart.style;
-    $('fKey').value      = chart.key;
+    $('fKey').value      = keyDisplay();
     $('timeSig').value   = chart.timeSig;
+    $('transpose').value = String(chart.transpose);
     $('countIn').value   = String(chart.countIn);
     $('ramp').value      = String(chart.ramp);
     $('loop').checked    = chart.loop;
@@ -514,6 +545,15 @@
     refresh();
     select(selected);
   }
+
+  (function buildTransposeOptions() {
+    var sel = $('transpose'), html = '';
+    for (var n = -6; n <= 6; n++) {
+      var label = n === 0 ? '0' : (n > 0 ? '+' + n : '\u2212' + Math.abs(n));
+      html += '<option value="' + n + '">' + label + '</option>';
+    }
+    sel.innerHTML = html;
+  })();
 
   try { setTheme(localStorage.getItem(THEME) === 'dark' ? 'dark' : 'paper'); }
   catch (e) { setTheme('paper'); }

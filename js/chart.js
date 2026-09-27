@@ -43,6 +43,7 @@
       loop: true,
       chordsOn: false,
       chordVol: 55,
+      transpose: 0,
       bars: bars
     };
   }
@@ -129,6 +130,7 @@
   }
 
   function render(chart, host, selected) {
+    var semis = chart.transpose || 0;
     var bpb = beatsPerBar(chart);
     var sig = String(chart.timeSig).split('/');
     var html = '';
@@ -152,7 +154,8 @@
 
       html += '<div class="slots">';
       for (var s = 0; s < SLOTS; s++) {
-        html += '<div class="slot" data-s="' + s + '">' + Chords.render(b.chords[s]) + '</div>';
+        html += '<div class="slot" data-s="' + s + '">' +
+                Chords.render(Chords.transpose(b.chords[s], semis)) + '</div>';
       }
       html += '</div>';
 
@@ -182,6 +185,7 @@
       loop:     raw.loop !== false,
       chordsOn: raw.chordsOn === true,
       chordVol: Math.min(100, Math.max(0, parseInt(raw.chordVol, 10) || 55)),
+      transpose: Math.min(6, Math.max(-6, parseInt(raw.transpose, 10) || 0)),
       bars:     []
     };
     var bars = Array.isArray(raw.bars) ? raw.bars : [];

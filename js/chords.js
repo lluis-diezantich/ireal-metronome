@@ -215,5 +215,45 @@
     return out + '</span>';
   }
 
-  global.Chords = { parse: parse, render: render, esc: esc };
+  /* Spellings used for transposed roots: flats, except F sharp, which is
+     how lead sheets normally write that note. One table to change. */
+  var SPELL = ['C', 'D' + FLAT, 'D', 'E' + FLAT, 'E', 'F',
+               'F' + SHARP, 'G', 'A' + FLAT, 'A', 'B' + FLAT, 'B'];
+  var PCLASS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+  function shiftNote(letter, acc, semis) {
+    var n = PCLASS[letter.toUpperCase()];
+    if (n === undefined) return null;
+    if (acc === '#' || acc === SHARP) n += 1;
+    else if (acc === 'b' || acc === FLAT) n -= 1;
+    return SPELL[((n + semis) % 12 + 12) % 12];
+  }
+
+  /* Shift the root, and the bass note if there is one, leaving the quality
+     and every alteration exactly as written. */
+  function transpose(text, semis) {
+    var raw = String(text == null ? '' : text).trim();
+    if (!raw || !semis) return raw;
+
+    var c = parse(raw);
+    if (!c || c.special) return raw;
+
+    var m = raw.match(/^([A-Ga-g])([#b\u266F\u266D]?)/);
+    if (!m) return raw;
+    var root = shiftNote(m[1], m[2], semis);
+    if (!root) return raw;
+
+    var rest = raw.substring(m[0].length);
+    var slash = rest.lastIndexOf('/');
+    if (slash >= 0) {
+      var bm = rest.substring(slash + 1).match(/^([A-Ga-g])([#b\u266F\u266D]?)$/);
+      if (bm) {
+        var bass = shiftNote(bm[1], bm[2], semis);
+        if (bass) rest = rest.substring(0, slash + 1) + bass;
+      }
+    }
+    return root + rest;
+  }
+
+  global.Chords = { parse: parse, render: render, esc: esc, transpose: transpose };
 })(window);

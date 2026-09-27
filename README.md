@@ -69,6 +69,13 @@ barlines and repeat count, double bar, and inserts or deletes measures.
 | Loop               | off means it stops at the end of the form           |
 | Chords             | unmute the piano (off by default); Piano sets level  |
 | Focus              | chart only, everything else hidden                  |
+| Transpose          | shift the chart ±6 semitones, display and piano      |
+
+Transposing is non-destructive: chords are stored at concert pitch and the
+offset is applied when drawing and when playing, so setting it back to 0 always
+returns the original. Editing works in the key you can see — type `D-7` in a
+chart transposed up 2 and `C-7` is what gets stored. Transposed roots are
+spelled with flats, except F sharp; that is one table in `js/chords.js`.
 
 `Focus` strips the page back to the chart alone and sets the chords larger, for
 reading off a music stand. Editing is off in there, so tapping anywhere on the
