@@ -4,7 +4,6 @@
 
   var STORE = 'irealMetronome.v1';
   var SONGS = 'irealMetronome.songs.v1';
-  var THEME = 'irealMetronome.theme';
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -550,7 +549,7 @@
     select(chart.bars.length - 4);
   });
 
-  /* ---------- theme, import, export ---------- */
+  /* ---------- import, export ---------- */
 
   function inFocus() { return document.body.classList.contains('focus-mode'); }
 
@@ -563,16 +562,6 @@
 
   $('focus').addEventListener('click', function () { setFocus(true); });
   $('focusExit').addEventListener('click', function () { setFocus(false); });
-
-  function setTheme(name) {
-    document.body.dataset.theme = name;
-    $('theme').textContent = name === 'dark' ? 'Paper' : 'Dark';
-    try { localStorage.setItem(THEME, name); } catch (e) {}
-  }
-
-  $('theme').addEventListener('click', function () {
-    setTheme(document.body.dataset.theme === 'dark' ? 'paper' : 'dark');
-  });
 
   $('export').addEventListener('click', function () {
     var name = (chart.title || 'chart').replace(/[^\w\- ]+/g, '').trim() || 'chart';
@@ -737,9 +726,6 @@
     }
     sel.innerHTML = html;
   })();
-
-  try { setTheme(localStorage.getItem(THEME) === 'dark' ? 'dark' : 'paper'); }
-  catch (e) { setTheme('paper'); }
 
   syncAll();
 })();
