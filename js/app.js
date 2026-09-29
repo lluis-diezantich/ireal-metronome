@@ -668,11 +668,23 @@
 
   /* ---------- keyboard ---------- */
 
+  /* Somewhere a space is a real character: a chord field, a song name, a
+     title. Anywhere else — number boxes, dropdowns, sliders, checkboxes,
+     the page itself — space means play. */
+  function isTextField(t) {
+    if (!t) return false;
+    if (t.tagName === 'TEXTAREA') return true;
+    if (t.tagName !== 'INPUT') return false;
+    var type = (t.getAttribute('type') || 'text').toLowerCase();
+    return type === 'text' || type === 'search' || type === 'url' ||
+           type === 'email' || type === 'password' || type === 'tel';
+  }
+
   document.addEventListener('keydown', function (e) {
     var t = e.target;
     var typing = t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA');
 
-    if (e.code === 'Space' && !typing) { e.preventDefault(); togglePlay(); return; }
+    if (e.code === 'Space' && !isTextField(t)) { e.preventDefault(); togglePlay(); return; }
     if (typing) return;
 
     if (e.key === 'Escape') {

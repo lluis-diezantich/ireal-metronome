@@ -86,7 +86,7 @@ barlines and repeat count, double bar, and inserts or deletes measures.
 
 | Control            | What it does                                        |
 |--------------------|-----------------------------------------------------|
-| Space              | start / stop                                        |
+| Space              | start / stop, unless you are typing in a text field |
 | Tap (or `T`)       | tap tempo, averaged over the last few taps          |
 | ↑ / ↓              | tempo ± 1                                           |
 | ← / →              | move the selection                                  |
