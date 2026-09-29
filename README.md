@@ -23,16 +23,42 @@ works — modules would be blocked by CORS on `file://`.
 
 ## Writing a chart
 
-Click a measure and type chords separated by spaces:
+Click a measure and type chords separated by spaces. `Enter` or `Tab` commits
+and moves to the next measure, `Esc` cancels.
 
-| You type      | You get                           |
-|---------------|-----------------------------------|
-| `F7`          | one chord for the whole bar       |
-| `G-7 C7`      | two chords, split at the halfway  |
-| `F7 . . C7`   | beats 1 and 4, `.` leaves a gap   |
-| `A7 D7 G7 C7` | one per beat                      |
+### Chord durations
 
-`Enter` or `Tab` commits and moves to the next measure, `Esc` cancels.
+A bar is divided into four slots, each a quarter of it. A chord sounds from its
+slot until the next chord, so a `.` in a slot extends the chord before it. That
+is how you get changes of unequal length:
+
+| You type      | In 4/4                              |
+|---------------|-------------------------------------|
+| `F7`          | one chord, the whole bar            |
+| `G-7 C7`      | 2 beats each                        |
+| `A7 . D7 G7`  | A7 for 2 beats, then D7 and G7 for 1 each |
+| `F7 . . C7`   | F7 for 3 beats, C7 for 1            |
+| `A7 D7 G7 C7` | one per beat                        |
+| `F7 . . .`    | same as `F7`                        |
+
+So for "one chord over half the bar and two over the other half", write
+`A . G C`.
+
+### Two limits of that grid
+
+Both come from a bar being four fixed slots, and both are worth knowing because
+neither warns you:
+
+**Meters that do not divide by four drop chords.** In 3/4, `A . G C` draws all
+three chords but only plays A and C: slots 3 and 4 both round onto beat 3, so
+the later one wins. Keep to at most three changes per bar in 3/4, and two in
+2/4.
+
+**More than four chords in a bar are discarded as you type them.** `A B C D E F`
+silently keeps only `A B C D`. There is no way to write eight changes in a bar.
+
+Fixing either properly means storing a duration per chord instead of the
+four-slot grid, which would also let you write `A2 G1 C1` directly. Not done.
 
 Both notations work, iReal Pro's shorthand and the plain spellings:
 
