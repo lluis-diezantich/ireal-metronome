@@ -183,8 +183,9 @@
     };
   }
 
-  /* text -> HTML string for one chord symbol */
-  function render(text, extraClass) {
+  /* text -> HTML string for one chord symbol. With a key, the root is
+     written as a scale degree instead of a note name. */
+  function render(text, extraClass, key) {
     var c = parse(text);
     var cls = 'chord' + (extraClass ? ' ' + extraClass : '');
     if (!c) return '';
@@ -193,10 +194,13 @@
     if (c.special === 'nc')  return '<span class="' + cls + ' nc">N.C.</span>';
     if (c.special === 'raw') return '<span class="' + cls + '">' + esc(c.raw) + '</span>';
 
-    var out = '<span class="' + cls + '">' + c.root;
-    if (c.acc) {
-      out += '<span class="acc' + (c.acc === SHARP ? ' sharp' : '') + '">' + c.acc + '</span>';
+    var head = key ? degreeHead(c, key) : null;
+    if (head === null) {
+      head = c.root + (c.acc
+        ? '<span class="acc' + (c.acc === SHARP ? ' sharp' : '') + '">' + c.acc + '</span>'
+        : '');
     }
+    var out = '<span class="' + cls + '">' + head;
 
     var sup = c.qual + c.ext;
     if (sup) out += '<span class="q">' + sup + '</span>';
@@ -208,8 +212,9 @@
     }
     if (c.tail) out += '<span class="q">' + esc(c.tail) + '</span>';
     if (c.bass) {
+      var low = (key ? degreeBass(c.bass, key) : null) || c.bass;
       out += '<span class="bass">/' +
-             c.bass.replace(SHARP, '<span class="sharp">' + SHARP + '</span>') + '</span>';
+             low.replace(SHARP, '<span class="sharp">' + SHARP + '</span>') + '</span>';
     }
 
     return out + '</span>';
@@ -255,5 +260,70 @@
     return root + rest;
   }
 
-  global.Chords = { parse: parse, render: render, esc: esc, transpose: transpose };
+  /* ---- scale degrees ----
+   *
+   * Degrees are measured against the major scale of the key's tonic, and that
+   * one table serves minor keys too: in A minor, C is still three semitones
+   * up, so it comes out as bIII, which is how it is written. Upper or lower
+   * case comes from the chord's own quality, never from the key.
+   */
+  var DEGREE = ['I', FLAT + 'II', 'II', FLAT + 'III', 'III', 'IV',
+                SHARP + 'IV', 'V', FLAT + 'VI', 'VI', FLAT + 'VII', 'VII'];
+  var FIGURE = ['1', FLAT + '2', '2', FLAT + '3', '3', '4',
+                SHARP + '4', '5', FLAT + '6', '6', FLAT + '7', '7'];
+
+  function pitchOf(letter, acc) {
+    var n = PCLASS[String(letter).toUpperCase()];
+    if (n === undefined) return null;
+    if (acc === '#' || acc === SHARP) n += 1;
+    else if (acc === 'b' || acc === FLAT) n -= 1;
+    return (n % 12 + 12) % 12;
+  }
+
+  /* "F", "Bb", "A-", "F#m" -> the tonic's pitch class. A minor marker is
+     read and discarded: it does not change the numbering. */
+  function tonicPitch(key) {
+    var m = String(key == null ? '' : key).trim()
+              .match(/^([A-Ga-g])([#b\u266F\u266D]?)/);
+    return m ? pitchOf(m[1], m[2]) : null;
+  }
+
+  /* minor, half-diminished and diminished take a lower-case numeral */
+  function minorish(q) { return q === '-' || q === HDIM || q === DIM; }
+
+  /* parsed chord + key -> the numeral as markup, or null if either is
+     unreadable, which leaves render() showing the chord name instead. */
+  function degreeHead(c, key) {
+    var t = tonicPitch(key);
+    if (t === null) return null;
+    var n = pitchOf(c.root, c.acc);
+    if (n === null) return null;
+
+    var d = DEGREE[((n - t) % 12 + 12) % 12];
+    if (minorish(c.qual)) d = d.toLowerCase();
+
+    var acc = '';
+    if (d.charAt(0) === FLAT || d.charAt(0) === SHARP) {
+      acc = d.charAt(0);
+      d = d.slice(1);
+    }
+    return (acc
+      ? '<span class="acc' + (acc === SHARP ? ' sharp' : '') + '">' + acc + '</span>'
+      : '') + d;
+  }
+
+  /* F7/A in F -> I7/3 */
+  function degreeBass(bass, key) {
+    var t = tonicPitch(key);
+    if (t === null) return null;
+    var m = String(bass).match(/^([A-G])([\u266F\u266D]?)$/);
+    if (!m) return null;
+    var n = pitchOf(m[1], m[2]);
+    return n === null ? null : FIGURE[((n - t) % 12 + 12) % 12];
+  }
+
+  global.Chords = {
+    parse: parse, render: render, esc: esc, transpose: transpose,
+    tonicPitch: tonicPitch
+  };
 })(window);

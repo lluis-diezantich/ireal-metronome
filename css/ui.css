@@ -174,7 +174,6 @@ body.focus-mode .sheet-foot { display: none !important; }
 body.focus-mode { background: var(--paper); }
 
 body.focus-mode .sheet {
-  max-width: 1200px;
   min-height: 100vh;
   margin: 0 auto;
   border: 0;
@@ -182,11 +181,6 @@ body.focus-mode .sheet {
   box-shadow: none;
   padding: 30px 36px;
 }
-
-/* bigger, because nothing else is competing for the space */
-body.focus-mode .chord { font-size: 34px; }
-body.focus-mode .bar   { min-height: 100px; cursor: pointer; }
-body.focus-mode .chart { row-gap: 46px; }
 
 /* no editing in here */
 body.focus-mode .bar.selected .hl   { box-shadow: none; }
@@ -213,7 +207,6 @@ body.focus-mode .sheet-head input   { pointer-events: none; }
 
 @media (max-width: 620px) {
   body.focus-mode .sheet { padding: 16px 14px; }
-  body.focus-mode .chord { font-size: 26px; }
 }
 
 /* practice-range chip */

@@ -448,6 +448,11 @@
     chart.timeSig = this.value;
     refresh();
   });
+  $('numerals').addEventListener('change', function () {
+    chart.numerals = this.checked;
+    refresh();
+  });
+
   $('transpose').addEventListener('change', function () {
     chart.transpose = parseInt(this.value, 10) || 0;
     $('fKey').value = keyDisplay();
@@ -719,6 +724,7 @@
     $('fKey').value      = keyDisplay();
     $('timeSig').value   = chart.timeSig;
     $('transpose').value = String(chart.transpose);
+    $('numerals').checked = chart.numerals;
     syncLoopChip();
     $('countIn').value   = String(chart.countIn);
     $('ramp').value      = String(chart.ramp);

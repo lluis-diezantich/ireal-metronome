@@ -43,6 +43,7 @@
       loop: true,
       chordsOn: false,
       chordVol: 55,
+      numerals: false,
       transpose: 0,
       loopFrom: null,
       loopTo: null,
@@ -160,8 +161,24 @@
     return order.length ? order : [0];
   }
 
+  /* The key numerals are measured from: the chart's own, or failing that the
+     first chord in it, so switching the mode on always shows something. */
+  function tonicFor(chart) {
+    if (Chords.tonicPitch(chart.key) !== null) return chart.key;
+    for (var i = 0; i < chart.bars.length; i++) {
+      for (var s = 0; s < SLOTS; s++) {
+        var c = chart.bars[i].chords[s];
+        if (c && Chords.tonicPitch(c) !== null) return c;
+      }
+    }
+    return null;
+  }
+
   function render(chart, host, selected) {
     var semis = chart.transpose || 0;
+    /* Numerals are read off the stored chords and the stored key, so they do
+       not move when the chart is transposed. */
+    var key = chart.numerals ? tonicFor(chart) : null;
     var range = loopRange(chart);
     var bpb = beatsPerBar(chart);
     var sig = String(chart.timeSig).split('/');
@@ -178,7 +195,7 @@
       if (range && i >= range.from && i <= range.to) cls.push('in-loop');
 
       html += '<div class="' + cls.join(' ') + '" data-i="' + i + '" role="gridcell" tabindex="-1">';
-      html += '<i class="hl"></i>';
+      html += '<i class="hl"></i><i class="rules"></i>';
       if (b.section) html += '<span class="section">' + Chords.esc(b.section) + '</span>';
       if (i === 0) {
         html += '<span class="timesig">' + Chords.esc(sig[0] || '4') +
@@ -188,7 +205,9 @@
       html += '<div class="slots">';
       for (var s = 0; s < SLOTS; s++) {
         html += '<div class="slot" data-s="' + s + '">' +
-                Chords.render(Chords.transpose(b.chords[s], semis)) + '</div>';
+                (key ? Chords.render(b.chords[s], '', key)
+                     : Chords.render(Chords.transpose(b.chords[s], semis))) +
+                '</div>';
       }
       html += '</div>';
 
@@ -218,6 +237,7 @@
       loop:     raw.loop !== false,
       chordsOn: raw.chordsOn === true,
       chordVol: Math.min(100, Math.max(0, parseInt(raw.chordVol, 10) || 55)),
+      numerals: raw.numerals === true,
       transpose: Math.min(6, Math.max(-6, parseInt(raw.transpose, 10) || 0)),
       loopFrom: raw.loopFrom == null ? null : parseInt(raw.loopFrom, 10),
       loopTo:   raw.loopTo   == null ? null : parseInt(raw.loopTo, 10),
@@ -251,6 +271,7 @@
     chordEvents: chordEvents,
     loopRange: loopRange,
     sectionRange: sectionRange,
+    tonicFor: tonicFor,
     playOrder: playOrder,
     render: render,
     sanitize: sanitize
