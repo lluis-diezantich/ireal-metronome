@@ -73,7 +73,20 @@
     if (!bar) return;
 
     var spb = 60 / Math.max(20, Math.min(400, this.getBpm()));
-    var events = global.Chart.chordEvents(bar, this.getBeatsPerBar());
+    var bpb = this.getBeatsPerBar();
+    var events = global.Chart.chordEvents(bar, bpb);
+    if (!events.length) return;   /* empty bar: a chord is already ringing */
+
+    /* Hold the last chord through the following empty bars, and up to the
+       first chord of the next bar that has one. */
+    for (var p = this.pos + 1; p < this.playOrder.length; p++) {
+      var next = this.getBarChords(this.playOrder[p]);
+      if (!next) break;
+      var ne = global.Chart.chordEvents(next, bpb);
+      if (ne.length) { events[events.length - 1].beats += ne[0].beat; break; }
+      events[events.length - 1].beats += bpb;
+    }
+
     for (var i = 0; i < events.length; i++) {
       global.Piano.play(this.ctx, this.voiceBus, events[i].text,
                         t + events[i].beat * spb, events[i].beats * spb, 0.5,

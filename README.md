@@ -6,9 +6,9 @@ beat dots inside the current bar, and the sounding chord picked out in blue.
 
 The chords can sound too, on a synthesized piano — tick `Chords` to unmute it,
 since it starts off. Each one is held from its slot
-until the next chord or the end of the bar, so a bar with one chord rings as a
-whole note. There is no rhythm section and no comping — just the click and the
-held chord.
+until the next chord, so a bar with one chord rings as a whole note and a chord
+followed by empty bars rings through them. There is no rhythm section and no
+comping — just the click and the held chord.
 
 ## Running it
 
@@ -43,6 +43,17 @@ is how you get changes of unequal length:
 
 So for "one chord over half the bar and two over the other half", write
 `A . G C`.
+
+### Holding a chord into the next bar
+
+Leave the next measure empty. A chord runs until the next chord in the play
+order, so `F7` followed by two empty bars is one attack ringing for three bars,
+and an empty measure is how iReal Pro writes a sustained chord too. If the
+measure after it starts on beat 3 (`. . C7`), the held chord fills the first
+two beats.
+
+Nothing is drawn in an empty measure — same as iReal Pro. To get a bar of
+silence rather than a hold, write `N.C.`.
 
 ### Two limits of that grid
 
@@ -187,6 +198,5 @@ What does not: segno, coda, D.S., D.C. and numbered endings. Those are reported
 after the import rather than silently dropped, but the roadmap is lost — the
 bars are all there, the navigation is not.
 
-One quirk worth knowing: iReal writes a sustained chord as an empty measure.
-Those are preserved, so the chart looks right, but the piano falls silent for
-the bar instead of holding the chord.
+iReal writes a sustained chord as an empty measure. Those are preserved, and
+the piano holds the previous chord through them.
