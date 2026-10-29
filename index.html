@@ -6,6 +6,7 @@
 <title>iReal Metronome</title>
 <link rel="stylesheet" href="css/chart.css">
 <link rel="stylesheet" href="css/ui.css">
+<link rel="stylesheet" href="css/print.css">
 </head>
 <body>
 
@@ -82,6 +83,7 @@
     <span class="status" id="status"></span>
     <button id="songs" class="ghost">Songs</button>
     <button id="focus" class="ghost" title="Chart only — hide the controls">Focus</button>
+    <button id="print" class="ghost" title="Print, or save as PDF">Print</button>
     <button id="ireal" class="ghost">iReal&hellip;</button>
     <button id="export" class="ghost">Export</button>
     <button id="importBtn" class="ghost">Import</button>
@@ -111,6 +113,13 @@
 </div>
 
 <main class="sheet">
+  <div class="print-head" aria-hidden="true">
+    <span id="pStyle" class="ph-style"></span>
+    <span id="pTitle" class="ph-title"></span>
+    <span id="pComposer" class="ph-composer"></span>
+  </div>
+  <div id="pKey" class="ph-key" aria-hidden="true"></div>
+
   <div class="sheet-head">
     <div class="head-row">
       <input id="fTitle" class="f-title" placeholder="Untitled">

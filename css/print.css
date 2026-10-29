@@ -1,0 +1,72 @@
+/* print.css - the chart alone, black on white, for paper and Save as PDF. */
+
+/* The paper head exists only for print; on screen the editable one stands in. */
+.print-head, .ph-key { display: none; }
+
+@media print {
+  @page { margin: 12mm; }
+
+  :root {
+    /* app.js sizes the chords to the form before the dialog opens; the
+       fallback is what an unprepared print (no beforeprint) gets. */
+    --chord:      var(--print-chord, 30px);
+    --paper:      #fff;
+    --paper-edge: #fff;
+    --ink:        #000;
+    --rule:       #000;
+    --muted:      #000;
+    --accent:     #000;
+    --ui-line:    #000;
+    --highlight:  transparent;
+  }
+
+  body { background: #fff; }
+
+  /* screen furniture */
+  .transport, .import-bar, .library-bar, .bar-editor, .sheet-foot,
+  .focus-exit, .sheet-head { display: none !important; }
+
+  .sheet, body.focus-mode .sheet {
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+  }
+
+  /* head: style left, title centred, composer right, as on a real sheet */
+  .print-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-family: var(--chord-font);
+  }
+  .ph-style, .ph-composer { flex: 1 1 0; font-size: 14px; white-space: nowrap; }
+  .ph-style    { text-align: left; }
+  .ph-composer { text-align: right; }
+  .ph-title    { flex: 0 1 auto; font-size: 24px; font-weight: 700; text-align: center; }
+  .ph-key      { display: block; font-size: 12px; text-align: right; }
+
+  /* `1fr` columns are free to grow for a bar whose chords overflow, which
+     on paper pushes the last barline off the page. minmax(0, 1fr) keeps the
+     four columns equal and lets a crowded bar overflow instead. */
+  .chart {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 26px 2px 0 0;
+    row-gap: 20px;
+  }
+
+  /* no playhead, no selection, no practice range */
+  .hl, .beats { display: none !important; }
+  .bar { cursor: auto; break-inside: avoid; page-break-inside: avoid; }
+  .bar.in-loop { box-shadow: none; }
+  .chord.active { color: #000; }
+
+  /* app.js sets --squeeze on a measure too crowded for its share of the
+     page, the way an engraver tightens a busy bar. */
+  .chord { font-size: calc(var(--chord) * var(--squeeze, 1)); }
+  .section { background: #fff; }
+}

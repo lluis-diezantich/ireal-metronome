@@ -456,6 +456,7 @@
   $('transpose').addEventListener('change', function () {
     chart.transpose = parseInt(this.value, 10) || 0;
     $('fKey').value = keyDisplay();
+    syncPrintHead();
     refresh();
     syncBarEditor();
   });
@@ -490,6 +491,7 @@
 
   $('fKey').addEventListener('input', function () {
     chart.key = chart.transpose ? Chords.transpose(this.value, -chart.transpose) : this.value;
+    syncPrintHead();
     save();
   });
 
@@ -497,6 +499,7 @@
     .forEach(function (pair) {
       $(pair[0]).addEventListener('input', function () {
         chart[pair[1]] = this.value;
+        syncPrintHead();
         save();
       });
     });
@@ -671,6 +674,66 @@
     this.value = '';
   });
 
+  /* ---------- printing ----------
+     The print sheet draws its head as text rather than reusing the editable
+     fields: an <input> prints its placeholder when it is empty and clips
+     anything wider than its box. */
+
+  function syncPrintHead() {
+    $('pTitle').textContent    = chart.title || '';
+    $('pComposer').textContent = chart.composer || '';
+    $('pStyle').textContent    = chart.style ? '(' + chart.style + ')' : '';
+    var k = keyDisplay();
+    $('pKey').textContent      = k ? 'Key of ' + k : '';
+  }
+
+  /* A4 and Letter portrait at 96dpi, less 12mm margins, come to roughly
+     700px across and 940 down. A measure therefore gets a quarter of the
+     width, less its own indent, and the chart what the head leaves. */
+  var PRINT_BAR  = 152;
+  var PRINT_AREA = 880;
+
+  /* Size the chords to the page: as large as the form allows, so a short
+     chart reads off a stand, and small enough that the whole of it keeps to
+     one page. Then squeeze the few bars that still run past their barline.
+     All of it measured rather than computed, because how wide a chord draws
+     depends on the font and on what is stacked above it. */
+  function fitPrintChord() {
+    var root = document.documentElement;
+    var now = parseFloat(getComputedStyle(root).getPropertyValue('--chord')) || 44;
+    var rows = Math.ceil(chart.bars.length / 4) || 1;
+    var px = Math.max(14, Math.min(48, (PRINT_AREA / rows - 20) / 1.7));
+    root.style.setProperty('--print-chord', px.toFixed(1) + 'px');
+
+    var bars = chartEl.querySelectorAll('.bar');
+    for (var i = 0; i < bars.length; i++) {
+      var cs = bars[i].querySelectorAll('.chord'), w = 0;
+      for (var k = 0; k < cs.length; k++) w += cs[k].offsetWidth + 7;
+      var needed = w * px / now;
+      if (needed > PRINT_BAR) {
+        bars[i].style.setProperty('--squeeze',
+          Math.max(.55, PRINT_BAR / needed).toFixed(3));
+      } else {
+        bars[i].style.removeProperty('--squeeze');
+      }
+    }
+  }
+
+  function preparePrint() {
+    commitInline(0);
+    syncPrintHead();
+    fitPrintChord();
+  }
+
+  $('print').addEventListener('click', function () {
+    preparePrint();
+    window.print();
+  });
+
+  /* Cmd-P and the browser's own menu never touch the button. Safari has no
+     beforeprint, which is what the stylesheet's fallback size is for. */
+  window.addEventListener('beforeprint', preparePrint);
+
   /* ---------- keyboard ---------- */
 
   /* Somewhere a space is a real character: a chord field, a song name, a
@@ -732,6 +795,7 @@
     $('chords').checked  = chart.chordsOn;
     $('chordVol').value  = String(chart.chordVol);
     setTempo(chart.tempo);
+    syncPrintHead();
     refresh();
     select(selected);
   }

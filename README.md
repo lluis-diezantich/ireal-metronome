@@ -107,6 +107,7 @@ barlines and repeat count, double bar, and inserts or deletes measures.
 | bars n–m chip       | a practice range is set; × goes back to the whole form |
 | Chords             | unmute the piano (off by default); Piano sets level  |
 | Focus              | chart only, everything else hidden                  |
+| Print              | the chart on white paper, or Save as PDF             |
 | Transpose          | shift the chart ±6 semitones, display and piano      |
 
 To drill one passage, **click a section letter** to take that whole section, or
@@ -143,12 +144,35 @@ a 100 ms window — so the click does not drift the way `setTimeout` would. The
 playhead reads the same queue, which is why the highlight lands with the sound
 rather than near it.
 
+## Printing
+
+`Print` opens the browser's print dialog, where "Save as PDF" gets you a file;
+`⌘P` goes to the same place. What prints is the chart on white paper and
+nothing else — no transport, no measure editor, no playhead or selection, and
+black ink throughout. Transpose and `Numerals` print as you see them.
+
+The chords are sized to the form just before the dialog opens. A short chart
+gets large ones; a long chart shrinks until the whole form fits a single page,
+down to a floor past which it runs onto a second rather than becoming
+unreadable. Page breaks fall between rows of measures, never through one.
+
+A measure too crowded for its quarter of the page tightens its own chords
+instead of pushing the barlines out of alignment, so a bar of four changes
+prints smaller than its neighbours — which is what an engraver would do with
+it. The head is redrawn for paper: style on the left, title centred, composer
+on the right, key beneath. It is spans rather than the editable fields, which
+would print their placeholders when empty and clip anything too long.
+
+Safari has no `beforeprint` event, so printing from its own menu rather than
+the button uses a fixed chord size instead of one fitted to the form.
+
 ## Files
 
 ```
 index.html      markup for the transport, sheet, and measure editor
 css/chart.css   paper, chord typography, barlines, playhead
 css/ui.css      transport bar and measure editor
+css/print.css   the same chart in black on white, for paper and PDF
 js/chords.js    chord text -> lead-sheet markup
 js/piano.js     chord text -> synthesized piano notes
 js/chart.js     model, repeat expansion, rendering
