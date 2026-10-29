@@ -725,9 +725,13 @@
     fitPrintChord();
   }
 
-  $('print').addEventListener('click', function () {
+  /* The button is #printBtn rather than #print on purpose: an element with
+     that id is reachable as window.print, so in a browser that does not
+     define the method itself the call would land on the button. */
+  $('printBtn').addEventListener('click', function () {
     preparePrint();
-    window.print();
+    if (typeof window.print === 'function') window.print();
+    else statusEl.textContent = 'use your browser\u2019s Print';
   });
 
   /* Cmd-P and the browser's own menu never touch the button. Safari has no
