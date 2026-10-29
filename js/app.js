@@ -689,15 +689,19 @@
 
   /* A4 and Letter portrait at 96dpi, less 12mm margins, come to roughly
      700px across and 940 down. A measure therefore gets a quarter of the
-     width, less its own indent, and the chart what the head leaves. */
-  var PRINT_BAR  = 152;
+     width, less its own padding, and the chart what the head leaves. */
+  var PRINT_BAR  = 162;
   var PRINT_AREA = 880;
 
   /* Size the chords to the page: as large as the form allows, so a short
      chart reads off a stand, and small enough that the whole of it keeps to
-     one page. Then squeeze the few bars that still run past their barline.
-     All of it measured rather than computed, because how wide a chord draws
-     depends on the font and on what is stacked above it. */
+     one page. Then tighten the bars whose chords would not fit side by side,
+     which is what an engraver does with a busy measure.
+
+     A chord's room is its own slot plus any empty slots after it, since that
+     is how long it sounds. Measured off the live chart rather than computed,
+     because how wide a chord draws depends on the font and on what is
+     stacked above it. */
   function fitPrintChord() {
     var root = document.documentElement;
     var now = parseFloat(getComputedStyle(root).getPropertyValue('--chord')) || 44;
@@ -705,17 +709,28 @@
     var px = Math.max(14, Math.min(48, (PRINT_AREA / rows - 20) / 1.7));
     root.style.setProperty('--print-chord', px.toFixed(1) + 'px');
 
+    var scale = px / now;
     var bars = chartEl.querySelectorAll('.bar');
     for (var i = 0; i < bars.length; i++) {
-      var cs = bars[i].querySelectorAll('.chord'), w = 0;
-      for (var k = 0; k < cs.length; k++) w += cs[k].offsetWidth + 7;
-      var needed = w * px / now;
-      if (needed > PRINT_BAR) {
-        bars[i].style.setProperty('--squeeze',
-          Math.max(.55, PRINT_BAR / needed).toFixed(3));
-      } else {
-        bars[i].style.removeProperty('--squeeze');
+      bars[i].style.removeProperty('--squeeze');
+
+      /* the first measure carries the time signature, so it starts later */
+      var indent = i === 0 ? px * (chart.bars[0].repOpen ? .9 : .62) : 10;
+      var slotW = (PRINT_BAR - indent) / Chart.SLOTS;
+
+      var slots = bars[i].querySelectorAll('.slot'), filled = [], s;
+      for (s = 0; s < slots.length; s++) {
+        var c = slots[s].querySelector('.chord');
+        if (c) filled.push({ at: s, w: c.offsetWidth * scale });
       }
+
+      var worst = 1;
+      for (s = 0; s < filled.length; s++) {
+        var span = (s + 1 < filled.length ? filled[s + 1].at : Chart.SLOTS) - filled[s].at;
+        var room = slotW * span - 4;
+        if (filled[s].w > room) worst = Math.min(worst, room / filled[s].w);
+      }
+      if (worst < 1) bars[i].style.setProperty('--squeeze', Math.max(.5, worst).toFixed(3));
     }
   }
 

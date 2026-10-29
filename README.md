@@ -156,10 +156,15 @@ gets large ones; a long chart shrinks until the whole form fits a single page,
 down to a floor past which it runs onto a second rather than becoming
 unreadable. Page breaks fall between rows of measures, never through one.
 
-A measure too crowded for its quarter of the page tightens its own chords
-instead of pushing the barlines out of alignment, so a bar of four changes
-prints smaller than its neighbours — which is what an engraver would do with
-it. The head is redrawn for paper: style on the left, title centred, composer
+A measure too crowded for the room it has tightens its own chords instead of
+letting them collide, so a bar of four changes prints smaller than its
+neighbours — which is what an engraver would do with it. A chord's room is its
+own slot plus any empty slots after it, the same span it sounds for.
+
+Barlines, their repeat dots and the section letter are scaled to the chord
+rather than left at the hairline weight the screen uses, since a printed chart
+is read at arm's length off a stand; the section letter prints as a filled
+block, as iReal Pro draws it. The head is redrawn for paper: style on the left, title centred, composer
 on the right, key beneath. It is spans rather than the editable fields, which
 would print their placeholders when empty and clip anything too long.
 
@@ -168,6 +173,10 @@ browser drops backgrounds unless the dialog's "print background graphics" box
 is ticked — Firefox leaves it unticked, which printed the chart as bare chords
 with no barlines at all. The print sheet asks for them with
 `print-color-adjust: exact`, so the box no longer matters either way.
+
+If the printed page comes out with the page title, the URL and the date around
+it, that is the browser's own header and footer, not the sheet — Firefox ticks
+them on by default, under "More settings" in its print dialog.
 
 Safari has no `beforeprint` event, so printing from its own menu rather than
 the button uses a fixed chord size instead of one fitted to the form.

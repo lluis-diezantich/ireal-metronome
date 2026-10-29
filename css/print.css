@@ -68,6 +68,18 @@
     row-gap: 20px;
   }
 
+  /* A printed chart is read at arm's length off a stand, where the hairline
+     the screen can afford disappears. Scale the barlines and their repeat
+     dots to the chord, the way an engraved sheet has them. */
+  .rules::before, .rules::after { width: calc(var(--chord) * .07); }
+  .bar.rep-open  .rules::before { box-shadow: calc(var(--chord) *  .15) 0 0 var(--rule); }
+  .bar.rep-close .rules::after  { box-shadow: calc(var(--chord) * -.15) 0 0 var(--rule); }
+  .bar.double    .rules::after  { box-shadow: calc(var(--chord) * -.12) 0 0 var(--rule); }
+  .bar.rep-open::before, .bar.rep-close::after {
+    width:  calc(var(--chord) * .09);
+    height: calc(var(--chord) * .09);
+  }
+
   /* no playhead, no selection, no practice range */
   .hl, .beats { display: none !important; }
   .bar { cursor: auto; break-inside: avoid; page-break-inside: avoid; }
@@ -77,5 +89,16 @@
   /* app.js sets --squeeze on a measure too crowded for its share of the
      page, the way an engraver tightens a busy bar. */
   .chord { font-size: calc(var(--chord) * var(--squeeze, 1)); }
-  .section { background: #fff; }
+
+  /* The section letter is a filled block on a printed sheet, and sized to
+     the chords rather than to the controls it sits among on screen. The
+     floors keep it legible on a chart long enough to shrink the chords. */
+  .section {
+    font-size: max(10px, calc(var(--chord) * .3));
+    top: min(-17px, calc(var(--chord) * -.5));
+    padding: 2px 4px;
+    border-width: 0;
+    background: var(--rule);
+    color: #fff;
+  }
 }
