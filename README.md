@@ -163,6 +163,12 @@ it. The head is redrawn for paper: style on the left, title centred, composer
 on the right, key beneath. It is spans rather than the editable fields, which
 would print their placeholders when empty and clip anything too long.
 
+Barlines, repeat dots and the section box are painted as backgrounds, and a
+browser drops backgrounds unless the dialog's "print background graphics" box
+is ticked — Firefox leaves it unticked, which printed the chart as bare chords
+with no barlines at all. The print sheet asks for them with
+`print-color-adjust: exact`, so the box no longer matters either way.
+
 Safari has no `beforeprint` event, so printing from its own menu rather than
 the button uses a fixed chord size instead of one fitted to the form.
 

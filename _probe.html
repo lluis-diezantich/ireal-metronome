@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iReal Metronome</title>
+<link rel="stylesheet" href="css/chart.css">
+<link rel="stylesheet" href="css/ui.css">
+<link rel="stylesheet" href="css/print.css">
+</head>
+<body>
+
+<header class="transport">
+  <button id="play" class="play" aria-label="Play or stop">
+    <span class="tri"></span><span class="sq"></span>
+  </button>
+
+  <div class="tempo">
+    <button class="step" id="bpmDown" aria-label="Slower">&minus;</button>
+    <div class="bpm-box">
+      <input id="bpm" class="bpm" type="number" min="30" max="320" value="130" aria-label="Tempo">
+      <span class="bpm-unit">bpm</span>
+    </div>
+    <button class="step" id="bpmUp" aria-label="Faster">+</button>
+    <input id="bpmSlider" class="slider" type="range" min="30" max="320" value="130" aria-label="Tempo slider">
+    <button class="tap" id="tap">Tap</button>
+  </div>
+
+  <div class="group">
+    <label class="fld">
+      <span>Time</span>
+      <select id="timeSig">
+        <option value="4/4" selected>4/4</option>
+        <option value="3/4">3/4</option>
+        <option value="2/4">2/4</option>
+        <option value="5/4">5/4</option>
+        <option value="6/8">6/8</option>
+        <option value="7/8">7/8</option>
+        <option value="12/8">12/8</option>
+      </select>
+    </label>
+    <label class="fld">
+      <span>Transpose</span>
+      <select id="transpose"></select>
+    </label>
+    <label class="fld chk" title="Show the progression as scale degrees">
+      <input id="numerals" type="checkbox"><span>Numerals</span>
+    </label>
+    <label class="fld">
+      <span>Count-in</span>
+      <select id="countIn">
+        <option value="0">off</option>
+        <option value="1" selected>1 bar</option>
+        <option value="2">2 bars</option>
+      </select>
+    </label>
+    <label class="fld">
+      <span>+bpm / repeat</span>
+      <input id="ramp" type="number" value="0" min="0" max="30" step="1">
+    </label>
+    <label class="fld chk">
+      <input id="loop" type="checkbox" checked><span>Loop</span>
+    </label>
+    <span id="loopChip" class="loop-chip" hidden>
+      <span id="loopChipText"></span>
+      <button id="loopClear" aria-label="Play the whole chart again"
+              title="Play the whole chart again">&times;</button>
+    </span>
+    <label class="fld">
+      <span>Click</span>
+      <input id="vol" class="slider slim" type="range" min="0" max="100" value="80">
+    </label>
+    <label class="fld chk">
+      <input id="chords" type="checkbox"><span>Chords</span>
+    </label>
+    <label class="fld">
+      <span>Piano</span>
+      <input id="chordVol" class="slider slim" type="range" min="0" max="100" value="55">
+    </label>
+  </div>
+
+  <div class="group right">
+    <span class="status" id="status"></span>
+    <button id="songs" class="ghost">Songs</button>
+    <button id="focus" class="ghost" title="Chart only — hide the controls">Focus</button>
+    <button id="printBtn" class="ghost" title="Print, or save as PDF">Print</button>
+    <button id="ireal" class="ghost">iReal&hellip;</button>
+    <button id="export" class="ghost">Export</button>
+    <button id="importBtn" class="ghost">Import</button>
+    <input id="importFile" type="file" accept="application/json" hidden>
+  </div>
+</header>
+
+<button id="focusExit" class="focus-exit" hidden
+        aria-label="Leave focus mode" title="Leave focus mode (Esc)">&times;</button>
+
+<div id="libraryBar" class="library-bar" hidden>
+  <div class="lib-top">
+    <input id="songName" type="text" autocomplete="off" placeholder="Name to save this chart under">
+    <button id="songSave" class="ghost">Save</button>
+    <button id="libClose" class="ghost">Hide</button>
+    <span id="libMsg" class="import-msg"></span>
+  </div>
+  <ul id="songList" class="song-list"></ul>
+</div>
+
+<div id="importBar" class="import-bar" hidden>
+  <input id="irealUrl" type="text" spellcheck="false" autocomplete="off"
+         placeholder="Paste an irealb:// link from iReal Pro or the forums">
+  <button id="irealLoad" class="ghost">Load</button>
+  <button id="irealCancel" class="ghost">Hide</button>
+  <span id="irealMsg" class="import-msg"></span>
+</div>
+
+<main class="sheet">
+  <div class="print-head" aria-hidden="true">
+    <span id="pStyle" class="ph-style"></span>
+    <span id="pTitle" class="ph-title"></span>
+    <span id="pComposer" class="ph-composer"></span>
+  </div>
+  <div id="pKey" class="ph-key" aria-hidden="true"></div>
+
+  <div class="sheet-head">
+    <div class="head-row">
+      <input id="fTitle" class="f-title" placeholder="Untitled">
+      <input id="fComposer" class="f-composer" placeholder="Composer">
+    </div>
+    <div class="head-row sub">
+      <input id="fStyle" class="f-style" placeholder="Medium Swing">
+      <input id="fKey" class="f-key" placeholder="Key">
+    </div>
+  </div>
+
+  <div id="chart" class="chart" role="grid" aria-label="Chord chart"></div>
+
+  <div class="sheet-foot">
+    <button id="addBar" class="ghost">+ Bar</button>
+    <button id="addFour" class="ghost">+ 4 Bars</button>
+    <span class="hint">Click a measure to type chords &mdash; <code>G-7 C7</code> splits the bar, <code>.</code> leaves a beat empty. Space plays.</span>
+  </div>
+</main>
+
+<section id="barEditor" class="bar-editor" hidden>
+  <div class="be-head">Measure <strong id="beNum">1</strong></div>
+  <div class="be-body">
+    <label class="fld"><span>Chords</span><input id="beChords" placeholder="F7"></label>
+    <label class="fld"><span>Section</span><input id="beSection" maxlength="4" placeholder="A"></label>
+    <label class="fld chk"><input id="beRepOpen" type="checkbox"><span>Repeat open</span></label>
+    <label class="fld chk"><input id="beRepClose" type="checkbox"><span>Repeat close</span></label>
+    <label class="fld"><span>Times</span><input id="beRepCount" type="number" min="2" max="8" value="2"></label>
+    <label class="fld chk"><input id="beDouble" type="checkbox"><span>Double bar</span></label>
+    <span class="be-spacer"></span>
+    <button id="beInsert" class="ghost">Insert after</button>
+    <button id="beDelete" class="ghost danger">Delete</button>
+  </div>
+</section>
+
+<script src="js/chords.js"></script>
+<script src="js/piano.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/ireal.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/app.js"></script>
+<script>
+window.addEventListener('load', function () {
+  var out = [], called = 0;
+  function render(){
+    var d = document.getElementById('probe') || document.createElement('pre');
+    d.id='probe'; d.textContent = out.join('\n');
+    d.style.cssText='position:fixed;top:0;left:0;z-index:9999;background:#ff0;font:13px monospace;padding:6px;white-space:pre';
+    document.body.appendChild(d);
+  }
+  window.onerror = function (m) { out.push('onerror: ' + m); render(); return true; };
+  out.push('typeof print: ' + (typeof window.print));
+  out.push('print is button: ' + (window.print === document.getElementById('printBtn')));
+  try { Object.defineProperty(window, 'print', {value:function(){called++;}, writable:true, configurable:true}); out.push('stubbed ok'); }
+  catch (e) { out.push('stub failed: ' + e.message); }
+  try { document.getElementById('printBtn').click(); } catch (e) { out.push('THREW: ' + e.name + ' ' + e.message); }
+  out.push('print called: ' + called);
+  out.push('--print-chord: ' + document.documentElement.style.getPropertyValue('--print-chord'));
+  var b = document.querySelector('.bar');
+  out.push('bars: ' + document.querySelectorAll('.bar').length + '  chords: ' + document.querySelectorAll('.chord').length);
+  render();
+});
+</script>
+</body>
+</html>
